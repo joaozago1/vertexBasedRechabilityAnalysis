@@ -4,8 +4,6 @@ module vertexBasedRechabilityAnalysis
     using JuMP
     using Gurobi
 
-    # const GUROBI_ENV = Gurobi.Env()
-
     using Combinatorics
     using Flux: params
 
@@ -43,7 +41,6 @@ module vertexBasedRechabilityAnalysis
 
             for j in l+1:size(P_hat)[2]
 
-                # model = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer, GUROBI_ENV),  "Threads" => 1))
                 model = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
                 set_optimizer_attribute(model, "OutputFlag", 0);
                 set_optimizer_attribute(model, "LogToConsole", 0);
@@ -212,11 +209,7 @@ module vertexBasedRechabilityAnalysis
 
     function identify_non_vertices(P_cp)
 
-        # model_test = Model(Gurobi.Optimizer);
-    
-        # Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer, GUROBI_ENV),  "Threads" => 1))
-
-        model = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
+        model_test = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
 
         for k in size(P_cp)[2]:-1:1
 
