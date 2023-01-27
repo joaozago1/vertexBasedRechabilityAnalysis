@@ -5,9 +5,7 @@ using Base.Iterators: repeated
 
 using LazySets
 
-include("../src/reachAlgorithm.jl")
-
-using .reachAlgorithm
+using vertexBasedRechabilityAnalysis
 
 function creating_dataset(N)
 
