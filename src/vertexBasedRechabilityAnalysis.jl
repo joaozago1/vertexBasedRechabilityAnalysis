@@ -22,6 +22,8 @@ module vertexBasedRechabilityAnalysis
 
     function identify_adjascent_vertices(P_hat)
 
+        @show GUROBI_ENV
+
         adj_vertices = []
 
         for i in 1:size(P_hat)[2]
