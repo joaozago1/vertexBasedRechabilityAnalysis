@@ -7,7 +7,8 @@ module vertexBasedRechabilityAnalysis
     const GUROBI_ENV = Gurobi.Env()
 
     using Combinatorics
-    using Flux
+    # using Flux
+    using Flux: params
 
     export affine_mapping, identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, network_mapping, origin_search, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, network_mapping2_removing_non_vertices, merging_sets, network_mapping3, check_inclusion
 
