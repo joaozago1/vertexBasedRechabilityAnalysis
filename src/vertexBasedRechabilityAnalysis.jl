@@ -1,4 +1,4 @@
-module reachAlgorithm
+module vertexBasedRechabilityAnalysis
 
     using LazySets, LinearAlgebra
     using JuMP
