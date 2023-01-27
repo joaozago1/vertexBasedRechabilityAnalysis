@@ -9,7 +9,7 @@ module vertexBasedRechabilityAnalysis
     using Combinatorics
     using Flux
 
-    export affine_mapping, identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, network_mapping, origin_search, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, network_mapping2, network_mapping2_removing_non_vertices, merging_sets, network_mapping3, check_inclusion
+    export affine_mapping, identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, network_mapping, origin_search, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, network_mapping2_removing_non_vertices, merging_sets, network_mapping3, check_inclusion
 
     function affine_mapping(P,W,b)
 
