@@ -21,4 +21,4 @@ We provided a simple toy example on example/ folder to guide the first steps on 
 
 Follows the reference with a formal presentation of the work implemented here.
 
-[<a href="https://www.google.com">1</a>]
+[<a href="https://arxiv.org/abs/2301.12001">1</a>] Zago, J., Camponogara, E., & Antonelo, E.. (2023). Vertex-based reachability analysis for verifying ReLU deep neural networks.
