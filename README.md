@@ -1,5 +1,5 @@
 # vertexBasedRechabilityAnalysis
-Repository containing implementation of the algorithms presented on: Vertex-based reachability analysis for verifying ReLU deep neural networks
+Repository containing implementation of the algorithms presented on: Vertex-based reachability analysis for verifying ReLU deep neural networks [<a href="https://arxiv.org/abs/2301.12001">1</a>].
 
 ## Installation
 
