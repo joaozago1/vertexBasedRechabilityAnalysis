@@ -7,242 +7,256 @@ module vertexBasedRechabilityAnalysis
     using Combinatorics
     using Flux: params
 
-    export affine_mapping, identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, network_mapping, origin_search, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, network_mapping2, merging_sets, network_mapping3, check_inclusion
+    include("utils/utils.jl")
 
-    function affine_mapping(P,W,b)
+    export affine_mapping, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, merging_sets
 
-        P_hat = W*P .+ b;
+    include("utils/vertexOperations.jl")
 
-        return P_hat;
+    export identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices
 
-    end;
+    include("utils/origin.jl")
 
-    function identify_adjascent_vertices(P_hat)
+    export origin_search
 
-        adj_vertices = []
+    export network_mapping, network_mapping2, network_mapping3
 
-        for i in 1:size(P_hat)[2]
+    # export affine_mapping, identify_adjascent_vertices, identifying_orthant_intersection_points, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, network_mapping, origin_search, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, network_mapping2, merging_sets, network_mapping3, check_inclusion
 
-            push!(adj_vertices, [])
+    # function affine_mapping(P,W,b)
 
-        end
+    #     P_hat = W*P .+ b;
 
-        Threads.@threads for l in 1:size(P_hat)[2]
+    #     return P_hat;
 
-            vars = []
-            thetas = []
+    # end;
 
-            for i in 1:size(P_hat)[2]
+    # function identify_adjascent_vertices(P_hat)
 
-                push!(vars, [])
-                push!(thetas, [])
+    #     adj_vertices = []
 
-            end
+    #     for i in 1:size(P_hat)[2]
 
-            for j in l+1:size(P_hat)[2]
+    #         push!(adj_vertices, [])
 
-                model = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
-                set_optimizer_attribute(model, "OutputFlag", 0);
-                set_optimizer_attribute(model, "LogToConsole", 0);
+    #     end
 
-                push!(vars[j], @variable(model,[i = 1:size(P_hat)[2]]));
-                push!(thetas[j], @variable(model, binary=true));
+    #     Threads.@threads for l in 1:size(P_hat)[2]
 
-                for i in 1:size(P_hat)[1]
+    #         vars = []
+    #         thetas = []
 
-                    @constraint(model, (P_hat[i,l] + P_hat[i,j])/2 .== transpose(P_hat[i,:]) * vars[j][1]);
+    #         for i in 1:size(P_hat)[2]
 
-                end
+    #             push!(vars, [])
+    #             push!(thetas, [])
 
-                @constraint(model, sum(vars[j][1]) == 1);
+    #         end
 
-                @constraint(model, vars[j][1][l] <= thetas[j][1]);
-                @constraint(model, vars[j][1][j] <= 1 - thetas[j][1]);
+    #         for j in l+1:size(P_hat)[2]
 
-                for i in 1:size(P_hat)[2]
+    #             model = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
+    #             set_optimizer_attribute(model, "OutputFlag", 0);
+    #             set_optimizer_attribute(model, "LogToConsole", 0);
 
-                    @constraint(model, vars[j][1][i] >= 0);
+    #             push!(vars[j], @variable(model,[i = 1:size(P_hat)[2]]));
+    #             push!(thetas[j], @variable(model, binary=true));
 
-                end
+    #             for i in 1:size(P_hat)[1]
 
-                optimize!(model)
+    #                 @constraint(model, (P_hat[i,l] + P_hat[i,j])/2 .== transpose(P_hat[i,:]) * vars[j][1]);
 
-                if termination_status(model) != MOI.OPTIMAL;
+    #             end
 
-                    push!(adj_vertices[l], j)
+    #             @constraint(model, sum(vars[j][1]) == 1);
 
-                end
+    #             @constraint(model, vars[j][1][l] <= thetas[j][1]);
+    #             @constraint(model, vars[j][1][j] <= 1 - thetas[j][1]);
 
+    #             for i in 1:size(P_hat)[2]
 
-            end
+    #                 @constraint(model, vars[j][1][i] >= 0);
 
-        end
+    #             end
 
-        return adj_vertices
+    #             optimize!(model)
 
-    end;
+    #             if termination_status(model) != MOI.OPTIMAL;
 
-    function identifying_orthant_intersection_points(P_hat, adj_vertices)
+    #                 push!(adj_vertices[l], j)
 
-        P_aux = []
+    #             end
 
-        if length(size(P_hat)) > 1
 
-            for i in 1:size(P_hat)[2]
+    #         end
 
-                push!(P_aux, [])
+    #     end
 
-            end
+    #     return adj_vertices
 
-            Threads.@threads for i in 1:size(P_hat)[2]
+    # end;
 
-                for j in 1:size(adj_vertices[i])[1]
+    # function identifying_orthant_intersection_points(P_hat, adj_vertices)
 
-                    A = P_hat[:,i];
-                    B = P_hat[:,adj_vertices[i][j]];
+    #     P_aux = []
 
-                    sign_diff = sign.(A) - sign.(B);
+    #     if length(size(P_hat)) > 1
 
-                    if sum(abs.(sign_diff)) != 0 
+    #         for i in 1:size(P_hat)[2]
 
-                        for l in 1:size(A)[1]
+    #             push!(P_aux, [])
 
-                            if sign_diff[l] != 0
+    #         end
 
-                                X_aux = zeros(size(P_hat)[1])
+    #         Threads.@threads for i in 1:size(P_hat)[2]
 
-                                lambda = -A[l]/(B[l] - A[l])
+    #             for j in 1:size(adj_vertices[i])[1]
 
-                                for k in 1:size(A)[1]
+    #                 A = P_hat[:,i];
+    #                 B = P_hat[:,adj_vertices[i][j]];
 
-                                    X_aux[k] = (B[k] - A[k])*lambda + A[k]
+    #                 sign_diff = sign.(A) - sign.(B);
 
-                                end
+    #                 if sum(abs.(sign_diff)) != 0 
 
-                                if isempty(P_aux[i])
+    #                     for l in 1:size(A)[1]
 
-                                    P_aux[i] = X_aux
+    #                         if sign_diff[l] != 0
 
-                                else
+    #                             X_aux = zeros(size(P_hat)[1])
 
-                                    P_aux[i] = [P_aux[i] X_aux]
+    #                             lambda = -A[l]/(B[l] - A[l])
 
-                                end
+    #                             for k in 1:size(A)[1]
 
-                            end
+    #                                 X_aux[k] = (B[k] - A[k])*lambda + A[k]
 
-                        end
+    #                             end
 
-                    end
+    #                             if isempty(P_aux[i])
 
-                end
+    #                                 P_aux[i] = X_aux
 
-            end
+    #                             else
 
-            for i in 1:size(P_aux)[1]
+    #                                 P_aux[i] = [P_aux[i] X_aux]
 
-                if !isempty(P_aux[i])
+    #                             end
 
-                    P_hat = hcat(P_hat, P_aux[i])
+    #                         end
 
-                end
+    #                     end
 
-            end
+    #                 end
 
-        end
+    #             end
 
-        return P_hat
+    #         end
 
-    end;
+    #         for i in 1:size(P_aux)[1]
 
-    function filtering_zeros(P_hat)
+    #             if !isempty(P_aux[i])
 
-        for i in 1:length(P_hat)    
+    #                 P_hat = hcat(P_hat, P_aux[i])
 
-            if P_hat[i] < 0
+    #             end
 
-                P_hat[i] = 0
+    #         end
 
-            end
+    #     end
 
-        end
+    #     return P_hat
 
-        return P_hat
+    # end;
 
-    end;
+    # function filtering_zeros(P_hat)
 
-    function convert_to_matrix(P_cp)
+    #     for i in 1:length(P_hat)    
 
-        P_cp2 = []
+    #         if P_hat[i] < 0
 
-        for i in 1:size(P_cp)[1]
+    #             P_hat[i] = 0
 
-            if i == 1
+    #         end
 
-                P_cp2 = P_cp[i]
+    #     end
 
-            else
+    #     return P_hat
 
-                P_cp2 = [P_cp2 P_cp[i]]
+    # end;
 
-            end
+    # function convert_to_matrix(P_cp)
 
-        end
+    #     P_cp2 = []
 
-        return P_cp2
+    #     for i in 1:size(P_cp)[1]
 
-    end;
+    #         if i == 1
 
-    function convert_to_vector(P_cp)
+    #             P_cp2 = P_cp[i]
 
-        aux = []
+    #         else
 
-        for i in 1:size(P_cp)[2]
+    #             P_cp2 = [P_cp2 P_cp[i]]
 
-            push!(aux, Vector(P_cp[:,i]))
+    #         end
 
-        end
+    #     end
 
-        return aux
+    #     return P_cp2
 
-    end;
+    # end;
 
-    function identify_non_vertices(P_cp)
+    # function convert_to_vector(P_cp)
 
-        model_test = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
+    #     aux = []
 
-        for k in size(P_cp)[2]:-1:1
+    #     for i in 1:size(P_cp)[2]
 
-            set_optimizer_attribute(model_test, "OutputFlag", 0);
-            set_optimizer_attribute(model_test, "LogToConsole", 0);
+    #         push!(aux, Vector(P_cp[:,i]))
 
-            @variable(model_test, lambda[i = 1:size(P_cp)[2]] >= 0);
+    #     end
 
-            for i in 1:size(P_cp)[1]
+    #     return aux
 
-                @constraint(model_test, P_cp[i,k] .== transpose(P_cp[i,:]) * lambda);
+    # end;
 
-            end
+    # function identify_non_vertices(P_cp)
 
-            @constraint(model_test, sum(lambda) == 1);
+    #     model_test = Model(optimizer_with_attributes(with_optimizer(Gurobi.Optimizer),  "Threads" => 1))
 
-            @constraint(model_test, lambda[k] == 0);
+    #     for k in size(P_cp)[2]:-1:1
 
-            optimize!(model_test);
+    #         set_optimizer_attribute(model_test, "OutputFlag", 0);
+    #         set_optimizer_attribute(model_test, "LogToConsole", 0);
 
-            if termination_status(model_test) == MOI.OPTIMAL;
+    #         @variable(model_test, lambda[i = 1:size(P_cp)[2]] >= 0);
 
-                P_cp = P_cp[:, 1:end .!=k]
+    #         for i in 1:size(P_cp)[1]
 
-            end
+    #             @constraint(model_test, P_cp[i,k] .== transpose(P_cp[i,:]) * lambda);
 
-            empty!(model_test)
+    #         end
 
-        end
+    #         @constraint(model_test, sum(lambda) == 1);
 
-        return P_cp
+    #         @constraint(model_test, lambda[k] == 0);
 
-    end;
+    #         optimize!(model_test);
+
+    #         if termination_status(model_test) == MOI.OPTIMAL;
+
+    #             P_cp = P_cp[:, 1:end .!=k]
+
+    #         end
+
+    #         empty!(model_test)
+
+    #     end
+
+    #     return P_cp
+
+    # end;
 
     function network_mapping(P_cp, neural_network)
 
@@ -275,220 +289,220 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function origin_search(P_hat, intersection_index_min, intersection_index_max)
+    # function origin_search(P_hat, intersection_index_min, intersection_index_max)
 
-        P_hat_aux = nothing
+    #     P_hat_aux = nothing
 
-        for j in intersection_index_min:intersection_index_max-1
+    #     for j in intersection_index_min:intersection_index_max-1
 
-            for k in j+1:intersection_index_max
+    #         for k in j+1:intersection_index_max
 
-                sign_abs_diff = abs.(sign.(P_hat[:,j]) - sign.(P_hat[:,k]))
+    #             sign_abs_diff = abs.(sign.(P_hat[:,j]) - sign.(P_hat[:,k]))
 
-                if maximum(sign_abs_diff) == 2 && findall(==(0), round.(P_hat[:,j], digits=6))[1] == findall(==(0), round.(P_hat[:,k], digits=6))[1]#&& length(sign_abs_diff[sign_abs_diff .>= 2]) >= input_dims
+    #             if maximum(sign_abs_diff) == 2 && findall(==(0), round.(P_hat[:,j], digits=6))[1] == findall(==(0), round.(P_hat[:,k], digits=6))[1]#&& length(sign_abs_diff[sign_abs_diff .>= 2]) >= input_dims
 
-                    for i in 1:size(P_hat)[1]
+    #                 for i in 1:size(P_hat)[1]
 
-                        if sign_abs_diff[i] == 2
+    #                     if sign_abs_diff[i] == 2
 
-                            λ = (0 - P_hat[i,k])/(P_hat[i,j] - P_hat[i,k])
+    #                         λ = (0 - P_hat[i,k])/(P_hat[i,j] - P_hat[i,k])
 
-                            aux_point = P_hat[:,j].*λ+P_hat[:,k].*(1-λ)
+    #                         aux_point = P_hat[:,j].*λ+P_hat[:,k].*(1-λ)
 
-                            if P_hat_aux == nothing
+    #                         if P_hat_aux == nothing
 
-                                P_hat_aux = aux_point
+    #                             P_hat_aux = aux_point
 
-                            else
+    #                         else
 
-                                P_hat_aux = [P_hat_aux aux_point]
+    #                             P_hat_aux = [P_hat_aux aux_point]
 
-                            end
+    #                         end
 
-                        end
+    #                     end
 
-                    end
+    #                 end
 
-                end
+    #             end
 
-            end
+    #         end
 
 
-        end
+    #     end
         
-        if P_hat_aux != nothing
+    #     if P_hat_aux != nothing
 
-            P_hat_aux = unique(P_hat_aux,dims=2);
+    #         P_hat_aux = unique(P_hat_aux,dims=2);
             
             
-        end
+    #     end
         
-        return P_hat_aux
+    #     return P_hat_aux
         
-    end;
+    # end;
 
-    function zeros_verification(input_x)
+    # function zeros_verification(input_x)
 
-        aux1 = []
+    #     aux1 = []
 
-        push!(aux1, input_x)
+    #     push!(aux1, input_x)
 
-        aux2 = copy(aux1)
+    #     aux2 = copy(aux1)
 
-        while !isempty(aux2)
+    #     while !isempty(aux2)
 
-            aux2 = []
+    #         aux2 = []
 
-            for j in 1:size(aux1)[1]
+    #         for j in 1:size(aux1)[1]
 
-                for i in 1:size(aux1[j])[1]
+    #             for i in 1:size(aux1[j])[1]
 
-                    if aux1[j][i] == 0.5
+    #                 if aux1[j][i] == 0.5
 
-                        aux = copy(aux1[j])
-                        aux[i] = 0
+    #                     aux = copy(aux1[j])
+    #                     aux[i] = 0
 
-                        push!(aux2, aux)
+    #                     push!(aux2, aux)
 
-                        aux = copy(aux1[j])
-                        aux[i] = 1
+    #                     aux = copy(aux1[j])
+    #                     aux[i] = 1
 
-                        push!(aux2, aux)
+    #                     push!(aux2, aux)
 
-                        break
+    #                     break
 
-                    end
+    #                 end
 
-                end
+    #             end
 
-            end
+    #         end
 
-            if !isempty(aux2)
+    #         if !isempty(aux2)
 
-                aux1 = copy(aux2)
+    #             aux1 = copy(aux2)
 
-            end
+    #         end
 
-        end
+    #     end
 
-        return aux1
+    #     return aux1
 
-    end;
+    # end;
 
-    function get_array_position(binary_x)
+    # function get_array_position(binary_x)
 
-        count = 1
+    #     count = 1
 
-        for j in 1:size(binary_x)[1]
+    #     for j in 1:size(binary_x)[1]
 
-            count = count + binary_x[j]*2^(j-1)
+    #         count = count + binary_x[j]*2^(j-1)
 
-        end
+    #     end
 
-        return count
+    #     return count
 
-    end;
+    # end;
 
-    function get_points_per_orthant(P_hat)
+    # function get_points_per_orthant(P_hat)
     
-        valid_keys = []
+    #     valid_keys = []
 
-        list_dict = Dict()
+    #     list_dict = Dict()
 
-        if length(size(P_hat)) > 1
+    #     if length(size(P_hat)) > 1
 
-            n_points = size(P_hat)[2]
+    #         n_points = size(P_hat)[2]
 
-        else
+    #     else
 
-            n_points = 1
+    #         n_points = 1
 
-        end
+    #     end
 
-        for i in 1:n_points
+    #     for i in 1:n_points
 
-            binary_positive = (sign.(P_hat[:,i]) .+ 1)./2
+    #         binary_positive = (sign.(P_hat[:,i]) .+ 1)./2
 
-            if sum(binary_positive .== 0.5) > 0
+    #         if sum(binary_positive .== 0.5) > 0
 
-                list_binary_intersection = zeros_verification(binary_positive)
+    #             list_binary_intersection = zeros_verification(binary_positive)
 
-                for k in 1:size(list_binary_intersection)[1]
+    #             for k in 1:size(list_binary_intersection)[1]
 
-                    pos = get_array_position(list_binary_intersection[k])
+    #                 pos = get_array_position(list_binary_intersection[k])
 
-                    if !haskey(list_dict, pos)
+    #                 if !haskey(list_dict, pos)
 
-                        list_dict[pos] = []
-                        push!(valid_keys, pos)
+    #                     list_dict[pos] = []
+    #                     push!(valid_keys, pos)
 
-                    end
+    #                 end
 
-                    if isempty(list_dict[pos])
+    #                 if isempty(list_dict[pos])
 
-                        list_dict[pos] = P_hat[:,i]
+    #                     list_dict[pos] = P_hat[:,i]
 
-                    else
+    #                 else
 
-                        list_dict[pos] = hcat(list_dict[pos], P_hat[:,i])
+    #                     list_dict[pos] = hcat(list_dict[pos], P_hat[:,i])
 
-                    end
+    #                 end
 
-                end
+    #             end
 
-            else
+    #         else
 
-                pos = get_array_position(binary_positive)
+    #             pos = get_array_position(binary_positive)
 
-                if !haskey(list_dict, pos)
+    #             if !haskey(list_dict, pos)
 
-                    list_dict[pos] = []
-                    push!(valid_keys, pos)
+    #                 list_dict[pos] = []
+    #                 push!(valid_keys, pos)
 
-                end
+    #             end
 
-                if isempty(list_dict[pos])
+    #             if isempty(list_dict[pos])
 
-                    list_dict[pos] = P_hat[:,i]
+    #                 list_dict[pos] = P_hat[:,i]
 
-                else
+    #             else
 
-                    list_dict[pos] = hcat(list_dict[pos], P_hat[:,i])
+    #                 list_dict[pos] = hcat(list_dict[pos], P_hat[:,i])
 
-                end
+    #             end
 
-            end
+    #         end
 
-        end
+    #     end
 
-        list_array = []
+    #     list_array = []
 
-        for i in 1:size(valid_keys)[1]
+    #     for i in 1:size(valid_keys)[1]
 
-            push!(list_array, list_dict[valid_keys[i]])
+    #         push!(list_array, list_dict[valid_keys[i]])
 
-        end
+    #     end
 
-        return list_array
+    #     return list_array
 
-    end;
+    # end;
 
 
-    function remove_empty_orthants(P_hat)
+    # function remove_empty_orthants(P_hat)
 
-        for i in size(P_hat)[1]:-1:1
+    #     for i in size(P_hat)[1]:-1:1
 
-            if isempty(P_hat[i])
+    #         if isempty(P_hat[i])
 
-                deleteat!(P_hat, i)
+    #             deleteat!(P_hat, i)
 
-            end
+    #         end
 
-        end
+    #     end
 
-        return P_hat
+    #     return P_hat
 
-    end;
+    # end;
 
     function network_mapping2(P_cp, neural_network)
 
@@ -572,35 +586,35 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function merging_sets(P_hat, divs)
+    # function merging_sets(P_hat, divs)
 
-        P_aux = []
+    #     P_aux = []
 
-        for i in 1:Int(ceil(size(P_hat)[1]/divs))
+    #     for i in 1:Int(ceil(size(P_hat)[1]/divs))
 
-            P_aux2 = []
+    #         P_aux2 = []
 
-            for j in (i-1)*divs+1:minimum([(i)*divs, size(P_hat)[1]])
+    #         for j in (i-1)*divs+1:minimum([(i)*divs, size(P_hat)[1]])
 
-                if isempty(P_aux2)
+    #             if isempty(P_aux2)
 
-                    P_aux2 = P_hat[j]
+    #                 P_aux2 = P_hat[j]
 
-                else
+    #             else
 
-                    P_aux2 = hcat(P_aux2, P_hat[j])
+    #                 P_aux2 = hcat(P_aux2, P_hat[j])
 
-                end
+    #             end
 
-            end
+    #         end
 
-            push!(P_aux, P_aux2)
+    #         push!(P_aux, P_aux2)
 
-        end
+    #     end
 
-        return P_aux
+    #     return P_aux
 
-    end;
+    # end;
 
     function network_mapping3(P_cp, neural_network, divs)
 
