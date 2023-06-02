@@ -244,11 +244,11 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function network_mapping(P_cp, rede_neural)
+    function network_mapping(P_cp, neural_network)
 
-        for i in 1:length(rede_neural)-1
+        for i in 1:length(neural_network)-1
 
-            P_hat = affine_mapping(P_cp, params(rede_neural[i])[1], params(rede_neural[i])[2]);
+            P_hat = affine_mapping(P_cp, params(neural_network[i])[1], params(neural_network[i])[2]);
             adj_vertices = identify_adjascent_vertices(P_hat);
 
             intersection_index_min = size(P_hat)[2] + 1;
@@ -269,7 +269,7 @@ module vertexBasedRechabilityAnalysis
 
         end
 
-        P_hat = affine_mapping(P_cp, params(rede_neural[length(rede_neural)])[1], params(rede_neural[length(rede_neural)])[2]);
+        P_hat = affine_mapping(P_cp, params(neural_network[length(neural_network)])[1], params(neural_network[length(neural_network)])[2]);
 
         return P_hat
 
@@ -490,14 +490,14 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function network_mapping2(P_cp, rede_neural)
+    function network_mapping2(P_cp, neural_network)
 
         P_input = [P_cp]
 
-        for j in 1:length(rede_neural)
+        for j in 1:length(neural_network)
         
-            input_dims = size(params(rede_neural.layers[j])[1])[2];
-            output_dims = size(params(rede_neural.layers[j])[1])[1];
+            input_dims = size(params(neural_network.layers[j])[1])[2];
+            output_dims = size(params(neural_network.layers[j])[1])[1];
 
             P_hat_div_aux = []
 
@@ -519,9 +519,9 @@ module vertexBasedRechabilityAnalysis
 
                     end
 
-                    P_hat = affine_mapping(P_hat, params(rede_neural[j])[1], params(rede_neural[j])[2])
+                    P_hat = affine_mapping(P_hat, params(neural_network[j])[1], params(neural_network[j])[2])
 
-                    if j < length(rede_neural)
+                    if j < length(neural_network)
                     
                         if length(size(P_hat)) > 1
 
@@ -602,14 +602,14 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function network_mapping3(P_cp, rede_neural, divs)
+    function network_mapping3(P_cp, neural_network, divs)
 
         P_input = [P_cp]
 
-        for j in 1:length(rede_neural)
+        for j in 1:length(neural_network)
 
-            input_dims = size(params(rede_neural.layers[j])[1])[2];
-            output_dims = size(params(rede_neural.layers[j])[1])[1];
+            input_dims = size(params(neural_network.layers[j])[1])[2];
+            output_dims = size(params(neural_network.layers[j])[1])[1];
 
             P_hat_div_aux = []
 
@@ -631,9 +631,9 @@ module vertexBasedRechabilityAnalysis
 
                     end
 
-                    P_hat = affine_mapping(P_hat, params(rede_neural[j])[1], params(rede_neural[j])[2])
+                    P_hat = affine_mapping(P_hat, params(neural_network[j])[1], params(neural_network[j])[2])
 
-                    if j < length(rede_neural)
+                    if j < length(neural_network)
 
                         if length(size(P_hat)) > 1
 
