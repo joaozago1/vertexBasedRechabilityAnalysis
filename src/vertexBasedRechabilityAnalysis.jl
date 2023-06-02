@@ -254,7 +254,7 @@ module vertexBasedRechabilityAnalysis
             intersection_index_min = size(P_hat)[2] + 1;
             P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
             intersection_index_max = size(P_hat)[2];
-            P_hat_aux = origin_search_2(P_hat, intersection_index_min, intersection_index_max)
+            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
         
             if P_hat_aux != nothing
 
@@ -275,7 +275,7 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function origin_search_2(P_hat, intersection_index_min, intersection_index_max)
+    function origin_search(P_hat, intersection_index_min, intersection_index_max)
 
         P_hat_aux = nothing
 
@@ -325,35 +325,6 @@ module vertexBasedRechabilityAnalysis
         
         return P_hat_aux
         
-    end;
-
-    function origin_search(P_hat)
-
-        model_test = Model(Gurobi.Optimizer);
-
-        set_optimizer_attribute(model_test, "OutputFlag", 0);
-        set_optimizer_attribute(model_test, "LogToConsole", 0);
-
-        @variable(model_test, lambda[i = 1:size(P_hat)[2]] >= 0);
-
-        for i in 1:size(P_hat)[1]
-
-            @constraint(model_test, 0 .== transpose(P_hat[i,:]) * lambda);
-
-        end
-
-        @constraint(model_test, sum(lambda) == 1);
-
-        optimize!(model_test);
-
-        if termination_status(model_test) == MOI.OPTIMAL;
-
-            P_hat = [P_hat zeros(size(P_hat)[1])]
-
-        end
-
-        return P_hat
-
     end;
 
     function zeros_verification(input_x)
@@ -558,7 +529,7 @@ module vertexBasedRechabilityAnalysis
                             intersection_index_min = size(P_hat)[2] + 1;
                             P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
                             intersection_index_max = size(P_hat)[2];
-                            P_hat_aux = origin_search_2(P_hat, intersection_index_min, intersection_index_max)
+                            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
                         
                             if P_hat_aux != nothing
 
@@ -670,7 +641,7 @@ module vertexBasedRechabilityAnalysis
                             intersection_index_min = size(P_hat)[2] + 1;
                             P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
                             intersection_index_max = size(P_hat)[2];
-                            P_hat_aux = origin_search_2(P_hat, intersection_index_min, intersection_index_max)
+                            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
                         
                             if P_hat_aux != nothing
 
