@@ -61,7 +61,7 @@ function verifying_property(rede_neural)
 
     P = transpose([1.33261 0.0; 1.07811 -0.783289; 0.4118 -1.26739; -0.4118 -1.26739; -1.07811 -0.783289; -1.33261 0.0; -1.07811 0.783289; -0.4118 1.26739; 0.4118 1.26739; 1.07811 0.783289])
 
-    P_hat_exact = network_mapping2_removing_non_vertices(P, rede_neural);
+    P_hat_exact = network_mapping2(P, rede_neural);
 
     return check_inclusion([-1 1], [0], P_hat_exact)
 
