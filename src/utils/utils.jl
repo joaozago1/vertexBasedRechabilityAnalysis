@@ -197,3 +197,45 @@ function merging_sets(P_hat, divs)
     return P_aux
 
 end;
+
+function check_inclusion(C,D,R)
+    
+    for k in 1:size(R)[1]
+    
+        prod_c = C*R[k]
+        
+        if ndims(prod_c) == 1
+            
+            for j in 1:size(prod_c)[1]
+
+                if prod_c[j] > D[j]
+
+                    return :violated
+
+                end
+
+            end 
+
+        else
+            
+            for i in 1:size(prod_c)[2]
+
+                for j in 1:size(prod_c)[1]
+
+                    if prod_c[j,i] > D[j]
+
+                        return :violated
+
+                    end
+
+                end 
+
+            end
+            
+        end
+        
+    end
+    
+    return :holds
+
+end;
