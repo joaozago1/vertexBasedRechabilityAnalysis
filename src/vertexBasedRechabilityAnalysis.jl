@@ -250,7 +250,20 @@ module vertexBasedRechabilityAnalysis
 
             P_hat = affine_mapping(P_cp, params(rede_neural[i])[1], params(rede_neural[i])[2]);
             adj_vertices = identify_adjascent_vertices(P_hat);
-            P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices);
+
+            intersection_index_min = size(P_hat)[2] + 1;
+            P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
+            intersection_index_max = size(P_hat)[2];
+            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
+        
+            if P_hat_aux != nothing
+
+                P_hat = [P_hat P_hat_aux];
+
+            end;
+            
+            P_hat = round.(P_hat, digits=6);
+
             P_cp = filtering_zeros(P_hat);
             P_cp = identify_non_vertices(P_cp);
 
@@ -262,33 +275,56 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function origin_search(P_hat)
+    function origin_search(P_hat, intersection_index_min, intersection_index_max)
 
-        model_test = Model(Gurobi.Optimizer);
+        P_hat_aux = nothing
 
-        set_optimizer_attribute(model_test, "OutputFlag", 0);
-        set_optimizer_attribute(model_test, "LogToConsole", 0);
+        for j in intersection_index_min:intersection_index_max-1
 
-        @variable(model_test, lambda[i = 1:size(P_hat)[2]] >= 0);
+            for k in j+1:intersection_index_max
 
-        for i in 1:size(P_hat)[1]
+                sign_abs_diff = abs.(sign.(P_hat[:,j]) - sign.(P_hat[:,k]))
 
-            @constraint(model_test, 0 .== transpose(P_hat[i,:]) * lambda);
+                if maximum(sign_abs_diff) == 2 && findall(==(0), round.(P_hat[:,j], digits=6))[1] == findall(==(0), round.(P_hat[:,k], digits=6))[1]#&& length(sign_abs_diff[sign_abs_diff .>= 2]) >= input_dims
+
+                    for i in 1:size(P_hat)[1]
+
+                        if sign_abs_diff[i] == 2
+
+                            λ = (0 - P_hat[i,k])/(P_hat[i,j] - P_hat[i,k])
+
+                            aux_point = P_hat[:,j].*λ+P_hat[:,k].*(1-λ)
+
+                            if P_hat_aux == nothing
+
+                                P_hat_aux = aux_point
+
+                            else
+
+                                P_hat_aux = [P_hat_aux aux_point]
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
+            end
+
 
         end
+        
+        if P_hat_aux != nothing
 
-        @constraint(model_test, sum(lambda) == 1);
-
-        optimize!(model_test);
-
-        if termination_status(model_test) == MOI.OPTIMAL;
-
-            P_hat = [P_hat zeros(size(P_hat)[1])]
-
+            P_hat_aux = unique(P_hat_aux,dims=2);
+            
+            
         end
-
-        return P_hat
-
+        
+        return P_hat_aux
+        
     end;
 
     function zeros_verification(input_x)
@@ -454,11 +490,14 @@ module vertexBasedRechabilityAnalysis
 
     end;
 
-    function network_mapping2_removing_non_vertices(P_cp, rede_neural)
+    function network_mapping2(P_cp, rede_neural)
 
         P_input = [P_cp]
 
         for j in 1:length(rede_neural)
+        
+            input_dims = size(params(rede_neural.layers[j])[1])[2];
+            output_dims = size(params(rede_neural.layers[j])[1])[1];
 
             P_hat_div_aux = []
 
@@ -487,11 +526,21 @@ module vertexBasedRechabilityAnalysis
                         if length(size(P_hat)) > 1
 
                             adj_vertices = identify_adjascent_vertices(P_hat)
+                            intersection_index_min = size(P_hat)[2] + 1;
                             P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
-                            P_hat = origin_search(P_hat)
+                            intersection_index_max = size(P_hat)[2];
+                            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
+                        
+                            if P_hat_aux != nothing
+
+                                P_hat = [P_hat P_hat_aux];
+
+                            end;
+                            
+                            P_hat = round.(P_hat, digits=6);
                         
                         end
-                    
+                        
                         P_hat = get_points_per_orthant(P_hat);
                         P_hat = remove_empty_orthants(P_hat);
 
@@ -521,8 +570,7 @@ module vertexBasedRechabilityAnalysis
 
         return P_input 
 
-    end; 
-
+    end;
 
     function merging_sets(P_hat, divs)
 
@@ -560,6 +608,9 @@ module vertexBasedRechabilityAnalysis
 
         for j in 1:length(rede_neural)
 
+            input_dims = size(params(rede_neural.layers[j])[1])[2];
+            output_dims = size(params(rede_neural.layers[j])[1])[1];
+
             P_hat_div_aux = []
 
             for i in 1:size(P_input)[1]
@@ -587,8 +638,18 @@ module vertexBasedRechabilityAnalysis
                         if length(size(P_hat)) > 1
 
                             adj_vertices = identify_adjascent_vertices(P_hat)
+                            intersection_index_min = size(P_hat)[2] + 1;
                             P_hat = identifying_orthant_intersection_points(P_hat, adj_vertices)
-                            P_hat = origin_search(P_hat)
+                            intersection_index_max = size(P_hat)[2];
+                            P_hat_aux = origin_search(P_hat, intersection_index_min, intersection_index_max)
+                        
+                            if P_hat_aux != nothing
+
+                                P_hat = [P_hat P_hat_aux];
+
+                            end;
+                            
+                            P_hat = round.(P_hat, digits=6);
 
                         end
 
