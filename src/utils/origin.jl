@@ -8,7 +8,7 @@ function origin_search(P_hat, intersection_index_min, intersection_index_max)
 
             sign_abs_diff = abs.(sign.(P_hat[:,j]) - sign.(P_hat[:,k]))
 
-            if maximum(sign_abs_diff) == 2 && findall(==(0), round.(P_hat[:,j], digits=6))[1] == findall(==(0), round.(P_hat[:,k], digits=6))[1]#&& length(sign_abs_diff[sign_abs_diff .>= 2]) >= input_dims
+            if maximum(sign_abs_diff) == 2 && size(findall(==(0), round.(P_hat[:,j], digits=6)) ∩ findall(==(0), round.(P_hat[:,k], digits=6)))[1] > 0
 
                 for i in 1:size(P_hat)[1]
 
