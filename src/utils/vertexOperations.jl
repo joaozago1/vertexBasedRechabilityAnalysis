@@ -188,11 +188,11 @@ function compute_intersections(P_hat, input_dimensionality)
         
         for i in 1:input_dimensionality-1
 
-            P_intersect_aux = comput_internal_intersections(P_intersect)
+            P_intersect = comput_internal_intersections(P_intersect)
 
-            if length(P_intersect_aux) > 0
+            if length(P_intersect) > 0
 
-                P_hat = [P_hat P_intersect_aux] 
+                P_hat = [P_hat P_intersect] 
 
             end
 
