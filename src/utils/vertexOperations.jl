@@ -156,11 +156,11 @@ function comput_internal_intersections(P_intersect)
 
             if isempty(P_intersect_aux)
 
-                P_intersect_aux = identifying_orthant_intersection_points_2(P_intersect[:,index_aux], adj_vertices_aux)
+                P_intersect_aux = identifying_orthant_intersection_points(P_intersect[:,index_aux], adj_vertices_aux)
 
             else
 
-                P_intersect_aux = [P_intersect_aux identifying_orthant_intersection_points_2(P_intersect[:,index_aux], adj_vertices_aux)]
+                P_intersect_aux = [P_intersect_aux identifying_orthant_intersection_points(P_intersect[:,index_aux], adj_vertices_aux)]
 
             end
             
@@ -175,7 +175,7 @@ end;
 function compute_intersections(P_hat, input_dimensionality)
     
     adj_vertices = identify_adjascent_vertices(P_hat);
-    P_intersect = identifying_orthant_intersection_points_2(P_hat, adj_vertices)
+    P_intersect = identifying_orthant_intersection_points(P_hat, adj_vertices)
     P_hat = [P_hat P_intersect]
 
     for i in 1:input_dimensionality-1
