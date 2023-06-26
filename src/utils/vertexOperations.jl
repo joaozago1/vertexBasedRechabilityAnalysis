@@ -82,23 +82,17 @@ function identifying_orthant_intersection_points(P_hat, adj_vertices)
                 A = P_hat[:,i];
                 B = P_hat[:,adj_vertices[i][j]];
 
-                sign_diff = sign.(A) - sign.(B);
+                sign_abs_diff = abs.(sign.(A) - sign.(B));
 
-                if sum(abs.(sign_diff)) != 0 
+                if findfirst(==(2), sign_abs_diff) != nothing
 
                     for l in 1:size(A)[1]
 
-                        if sign_diff[l] != 0
+                        if sign_abs_diff[l] == 2
 
-                            X_aux = zeros(size(P_hat)[1])
+                            λ = (0 - A[l])/(B[l] -A[l])
 
-                            lambda = -A[l]/(B[l] - A[l])
-
-                            for k in 1:size(A)[1]
-
-                                X_aux[k] = (B[k] - A[k])*lambda + A[k]
-
-                            end
+                            X_aux = B .* λ + A .* (1 - λ)
 
                             if isempty(P_aux[i])
 
