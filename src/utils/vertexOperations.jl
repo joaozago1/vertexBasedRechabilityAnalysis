@@ -113,12 +113,22 @@ function identifying_orthant_intersection_points(P_hat, adj_vertices)
             end
 
         end
+        
+        P_aux_concat = []
 
         for i in 1:size(P_aux)[1]
 
             if !isempty(P_aux[i])
+                
+                if isempty(P_aux_concat)
+                    
+                    P_aux_concat = P_aux[i]
+                    
+                else 
 
-                P_hat = hcat(P_hat, P_aux[i])
+                    P_aux_concat = hcat(P_aux_concat, P_aux[i])
+                    
+                end
 
             end
 
@@ -126,8 +136,57 @@ function identifying_orthant_intersection_points(P_hat, adj_vertices)
 
     end
 
-    return P_hat
+    return P_aux_concat
 
+end;
+
+function comput_internal_intersections(P_intersect)
+
+    H_s_intersection = [findall(==(0), round.(P_intersect[:,i], digits=6)) for i in 1:size(P_intersect)[2]];
+    
+    P_intersect_aux = []
+
+    for j in 1:size(P_intersect)[1]
+
+        index_aux = findall(==([j]), H_s_intersection)
+
+        if !isempty(index_aux)
+            
+            adj_vertices_aux = identify_adjascent_vertices(P_intersect[:,index_aux])
+
+            if isempty(P_intersect_aux)
+
+                P_intersect_aux = identifying_orthant_intersection_points_2(P_intersect[:,index_aux], adj_vertices_aux)
+
+            else
+
+                P_intersect_aux = [P_intersect_aux identifying_orthant_intersection_points_2(P_intersect[:,index_aux], adj_vertices_aux)]
+
+            end
+            
+        end
+
+    end
+    
+    return P_intersect_aux
+    
+end;
+
+function compute_intersections(P_hat, input_dimensionality)
+    
+    adj_vertices = identify_adjascent_vertices(P_hat);
+    P_intersect = identifying_orthant_intersection_points_2(P_hat, adj_vertices)
+    P_hat = [P_hat P_intersect]
+
+    for i in 1:input_dimensionality-1
+
+        P_intersect_aux = comput_internal_intersections(P_intersect)
+        P_hat = [P_hat P_intersect_aux] 
+
+    end
+    
+    return P_hat
+    
 end;
 
 function filtering_zeros(P_hat)
