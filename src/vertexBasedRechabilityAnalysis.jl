@@ -30,8 +30,6 @@ module vertexBasedRechabilityAnalysis
             P_hat = affine_mapping(P_cp, params(neural_network[i])[1], params(neural_network[i])[2]);
             P_hat = compute_intersections(P_hat, input_dimensionality)
     
-            P_hat = round.(P_hat, digits=6);
-    
             P_cp = filtering_zeros(P_hat);
             P_cp = identify_non_vertices(P_cp);
     
@@ -78,7 +76,6 @@ module vertexBasedRechabilityAnalysis
                         if length(size(P_hat)) > 1
                             
                             P_hat = compute_intersections(P_hat, input_dimensionality)
-                            P_hat = round.(P_hat, digits=6);
     
                         end
     
@@ -151,7 +148,6 @@ module vertexBasedRechabilityAnalysis
                         if length(size(P_hat)) > 1
     
                             P_hat = compute_intersections(P_hat, input_dimensionality);
-                            P_hat = round.(P_hat, digits=6);
     
                         end
     
