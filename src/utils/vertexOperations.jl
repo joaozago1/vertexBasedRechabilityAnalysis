@@ -200,6 +200,9 @@ function compute_intersections(P_hat, input_dimensionality)
         
     end
     
+    P_hat = round.(P_hat, digits=6);
+    P_hat = unique(P_hat, dims=2)
+    
     return P_hat
     
 end;
