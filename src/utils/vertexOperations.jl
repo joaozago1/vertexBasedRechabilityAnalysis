@@ -199,9 +199,6 @@ function compute_intersections(P_hat, input_dimensionality)
         end
         
     end
-    
-    P_hat = round.(P_hat, digits=6);
-    P_hat = unique(P_hat, dims=2);
 
     P_hat = removing_duplicated_vertices(P_hat);
 
@@ -211,12 +208,15 @@ end;
 
 function removing_duplicated_vertices(P_hat)
 
+    P_hat = round.(P_hat, digits=6);
+    P_hat = unique(P_hat, dims=2);
+
     argsort_aux = sortperm(P_hat[1,:])
     P_hat = P_hat[:,argsort_aux]
 
     for i in size(P_hat)[2]-1:-1:1
 
-        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 0.0001
+        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 1e-6
 
             P_hat = hcat(P_hat[:,1:i], P_hat[:,i+2:end])
 
