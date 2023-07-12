@@ -216,7 +216,7 @@ function removing_duplicated_vertices(P_hat)
 
     for i in size(P_hat)[2]-1:-1:1
 
-        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 0.01
+        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 0.0001
 
             P_hat = hcat(P_hat[:,1:i], P_hat[:,i+2:end])
 
