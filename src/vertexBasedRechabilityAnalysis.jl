@@ -7,8 +7,6 @@ module vertexBasedRechabilityAnalysis
     using Combinatorics
     using Flux: params
 
-    using JLD
-
     include("utils/utils.jl")
 
     export affine_mapping, zeros_verification, get_array_position, get_points_per_orthant, remove_empty_orthants, merging_sets, check_inclusion
@@ -43,48 +41,20 @@ module vertexBasedRechabilityAnalysis
     
     end;
 
-    function network_mapping2(P_cp, neural_network, using_files=false, prefix_name="")
+    function network_mapping2(P_cp, neural_network)
     
         input_dimensionality = size(P_cp)[1];
-    
-        if using_files == true
-    
-            mkdir(prefix_name*"layers")
-            mkdir(prefix_name*"layers/0")
-            save(prefix_name*"layers/0/P_"*string(length(readdir(prefix_name*"layers/0"))+1)*".jld", "data", P_cp)
-    
-        else
-    
-            P_input = [P_cp]
-    
-        end
+
+        P_input = [P_cp]
     
         for j in 1:length(neural_network)
     
             P_hat_div_aux = []
-    
-            if using_files == true
-                
-                mkdir(prefix_name*"layers/"*string(j))
-                P_size = length(readdir(prefix_name*"layers/"*string(j-1)))
-    
-            else
-    
-                P_size = size(P_input)[1]
-    
-            end
+            P_size = size(P_input)[1]
     
             for i in 1:P_size
                 
-                if using_files == true
-    
-                    P_hat = load(prefix_name*"layers/"*string(j-1)*"/P_"*string(i)*".jld")["data"]
-    
-                else
-    
-                    P_hat = copy(P_input[i])
-    
-                end
+                P_hat = copy(P_input[i])
     
                 if !isempty(P_hat)
     
@@ -113,39 +83,19 @@ module vertexBasedRechabilityAnalysis
                         P_hat = get_points_per_orthant(P_hat);
                         P_hat = remove_empty_orthants(P_hat);
     
-                        if using_files == true
-    
-                            for k in 1:length(P_hat)
-    
-                                save(prefix_name*"layers/"*string(j)*"/P_"*string(length(readdir(prefix_name*"layers/"*string(j)))+1)*".jld", "data", P_hat[k])
-    
-                            end
-    
+                        if isempty(P_hat_div_aux)
+
+                            P_hat_div_aux = P_hat
+
                         else
-    
-                            if isempty(P_hat_div_aux)
-    
-                                P_hat_div_aux = P_hat
-    
-                            else
-    
-                                append!(P_hat_div_aux, P_hat)
-    
-                            end
-    
+
+                            append!(P_hat_div_aux, P_hat)
+
                         end
     
                     else
     
-                        if using_files == true
-    
-                            save(prefix_name*"layers/"*string(j)*"/P_"*string(length(readdir(prefix_name*"layers/"*string(j)))+1)*".jld", "data", P_hat)
-    
-                        else
-    
-                            push!(P_hat_div_aux, P_hat)
-    
-                        end
+                        push!(P_hat_div_aux, P_hat)
     
                     end
     
@@ -153,24 +103,8 @@ module vertexBasedRechabilityAnalysis
     
             end
     
-            if using_files == false
+            P_input = copy(P_hat_div_aux)
     
-                P_input = copy(P_hat_div_aux)
-    
-            end
-    
-        end
-        
-        if using_files == true
-            
-            P_input = []
-            
-            for i in 1:length(readdir(prefix_name*"layers/"*string(length(neural_network))))
-                
-                push!(P_input, load(prefix_name*"layers/"*string(length(neural_network))*"/P_"*string(i)*".jld")["data"])
-                
-            end
-            
         end
         
         return P_input 

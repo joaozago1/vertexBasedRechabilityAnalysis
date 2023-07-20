@@ -141,34 +141,38 @@ function identifying_orthant_intersection_points(P_hat, adj_vertices)
 end;
 
 function comput_internal_intersections(P_intersect)
-
-    H_s_intersection = [findall(==(0), round.(P_intersect[:,i], digits=6)) for i in 1:size(P_intersect)[2]];
     
     P_intersect_aux = []
 
-    for j in 1:size(P_intersect)[1]
+    if length(size(P_intersect)) == 2
 
-        index_aux = findall(==([j]), H_s_intersection)
+        H_s_intersection = [findall(==(0), round.(P_intersect[:,i], digits=6)) for i in 1:size(P_intersect)[2]];
 
-        if !isempty(index_aux)
-            
-            adj_vertices_aux = identify_adjascent_vertices(P_intersect[:,index_aux])
-            P_intersect_temp = identifying_orthant_intersection_points(P_intersect[:,index_aux], adj_vertices_aux)
-            
-            if length(P_intersect_temp) > 0
-            
-                if isempty(P_intersect_aux)
+        for j in 1:size(P_intersect)[1]
 
-                    P_intersect_aux = P_intersect_temp
+            index_aux = findall(==([j]), H_s_intersection)
 
-                else
+            if !isempty(index_aux)
+                
+                adj_vertices_aux = identify_adjascent_vertices(P_intersect[:,index_aux])
+                P_intersect_temp = identifying_orthant_intersection_points(P_intersect[:,index_aux], adj_vertices_aux)
+                
+                if length(P_intersect_temp) > 0
+                
+                    if isempty(P_intersect_aux)
 
-                    P_intersect_aux = [P_intersect_aux P_intersect_temp]
+                        P_intersect_aux = P_intersect_temp
 
+                    else
+
+                        P_intersect_aux = [P_intersect_aux P_intersect_temp]
+
+                    end
+                    
                 end
                 
             end
-            
+
         end
 
     end
