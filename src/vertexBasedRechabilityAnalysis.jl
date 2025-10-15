@@ -5,6 +5,7 @@ module vertexBasedRechabilityAnalysis
     using Gurobi
 
     using Combinatorics
+    using MinimumVolumeEllipsoids
     using Flux: params
 
     include("utils/utils.jl")
