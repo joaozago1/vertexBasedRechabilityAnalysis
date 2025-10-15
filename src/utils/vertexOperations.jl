@@ -181,9 +181,14 @@ function comput_internal_intersections(P_intersect)
     
 end;
 
-function compute_intersections(P_hat, input_dimensionality)
+function compute_intersections(P_hat, input_dimensionality; adj_vertices=nothing)
     
-    adj_vertices = identify_adjascent_vertices(P_hat);
+    if adj_vertices === nothing
+
+        adj_vertices = identify_adjascent_vertices(P_hat);
+
+    end
+
     P_intersect = identifying_orthant_intersection_points(P_hat, adj_vertices)
     
     if length(P_intersect) > 0
@@ -371,3 +376,54 @@ function elliptic_envelop(P_hat_convex_hull)
     return vertices_hyperrectagle
 
 end;
+
+function adj_matrix_to_adj_list(adj_matrix)
+
+    adj_list = Vector{Vector{Int32}}(undef, 0)
+
+    for i in 1:size(adj_matrix, 2)
+
+        push!(adj_list, Vector{Int32}(undef, 0))
+
+        for j in i+1:size(adj_matrix, 1)
+
+            if adj_matrix[i,j] == 1
+
+                push!(adj_list[i], j)
+
+            end
+
+        end
+
+    end
+
+    return adj_list
+
+end;
+
+function compute_hyperrectangle_edges(P)
+
+    adjacency_aux = zeros(size(binary_aux,2), size(binary_aux,2));
+
+    for i in 1:size(P,2)-1
+
+        for j in i+1:size(P,2)
+
+            abs_diff = abs.(P[:,i] - P[:,j])
+            null_indices = findall(x -> x == 0, abs_diff)
+
+            if length(null_indices) == 1
+
+                adjacency_aux[i,j] = 1.0
+
+            end
+
+        end
+
+    end
+
+    adjacency_list = adj_matrix_to_adj_list(adjacency_aux);
+
+    return adjacency_list
+
+end

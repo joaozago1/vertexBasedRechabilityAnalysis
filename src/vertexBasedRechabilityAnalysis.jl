@@ -26,15 +26,17 @@ module vertexBasedRechabilityAnalysis
     function network_mapping(P_cp, neural_network)
     
         input_dimensionality = size(P_cp)[1];
+        adj_vertices = nothing
     
         for i in 1:length(neural_network)-1
     
             P_hat = affine_mapping(P_cp, params(neural_network[i])[1], params(neural_network[i])[2]);
-            P_hat = compute_intersections(P_hat, input_dimensionality)
+            P_hat = compute_intersections(P_hat, input_dimensionality, adj_vertices=adj_vertices)
     
             P_cp = filtering_zeros(P_hat);
             # P_cp = identify_non_vertices(P_cp);
             P_cp = elliptic_envelop(P_cp)
+            adj_vertices = compute_hyperrectangle_edges(P_cp)
     
         end
     
