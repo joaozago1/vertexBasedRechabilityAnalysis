@@ -146,7 +146,7 @@ function comput_internal_intersections(P_intersect)
 
     if length(size(P_intersect)) == 2
 
-        H_s_intersection = [findall(==(0), round.(P_intersect[:,i], digits=6)) for i in 1:size(P_intersect)[2]];
+        H_s_intersection = [findall(==(0), round.(P_intersect[:,i], digits=9)) for i in 1:size(P_intersect)[2]];
 
         for j in 1:size(P_intersect)[1]
 
@@ -212,7 +212,7 @@ end;
 
 function removing_duplicated_vertices(P_hat)
 
-    P_hat = round.(P_hat, digits=6);
+    P_hat = round.(P_hat, digits=9);
     P_hat = unique(P_hat, dims=2);
 
     argsort_aux = sortperm(P_hat[1,:])
@@ -220,7 +220,7 @@ function removing_duplicated_vertices(P_hat)
 
     for i in size(P_hat)[2]-1:-1:1
 
-        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 1e-6
+        if norm(P_hat[:,i] - P_hat[:,i+1], Inf) <= 1e-9
 
             P_hat = hcat(P_hat[:,1:i], P_hat[:,i+2:end])
 
@@ -320,9 +320,30 @@ function identify_non_vertices(P_cp)
 
 end;
 
+function calculate_polytope_dim_from_vertices(V)
+    m, n = size(V)
+    
+    if m == 0
+        return -1
+    elseif m == 1
+        return 0 
+    end
+
+    v1 = V[1, :]
+
+    differences = V[2:end, :] .- transpose(v1)
+    
+    return rank(differences, rtol=1e-3)
+end
+
 function elliptic_envelop(P_hat_convex_hull)
 
-    ϵ = minimum_volume_ellipsoid(P_hat_convex_hull, 1e-10, 0, 100000, centered=false)
+    dim_P = calculate_polytope_dim_from_vertices(P_hat_convex_hull');
+    M = fit(PCA, P_hat_convex_hull; maxoutdim=dim_P)
+
+    P_reduced_dim = predict(M, P_hat_convex_hull)
+
+    ϵ = minimum_volume_ellipsoid(P_reduced_dim, 1e-10, 0, 100000, centered=false)
 
     ellipsoid_center = ϵ.x;
     axis_size = sqrt.(eigvals(inv(ϵ.H ./ 2)))
@@ -344,6 +365,8 @@ function elliptic_envelop(P_hat_convex_hull)
         vertices_hyperrectagle = hcat(vertices_hyperrectagle, point_aux)
 
     end
+
+    vertices_hyperrectagle = reconstruct(M, vertices_hyperrectagle)
 
     return vertices_hyperrectagle
 

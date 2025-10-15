@@ -6,6 +6,7 @@ module vertexBasedRechabilityAnalysis
 
     using Combinatorics
     using MinimumVolumeEllipsoids
+    using MultivariateStats
     using Flux: params
 
     include("utils/utils.jl")
