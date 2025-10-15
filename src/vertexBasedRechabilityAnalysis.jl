@@ -23,7 +23,7 @@ module vertexBasedRechabilityAnalysis
 
     export network_mapping, network_mapping2, network_mapping3
 
-    function network_mapping(P_cp, neural_network)
+    function network_mapping(P_cp, neural_network; elliptic_envelop=false)
     
         input_dimensionality = size(P_cp)[1];
         adj_vertices = nothing
@@ -34,7 +34,15 @@ module vertexBasedRechabilityAnalysis
             P_hat = compute_intersections(P_hat, input_dimensionality, adj_vertices=adj_vertices)
     
             P_cp = filtering_zeros(P_hat);
-            P_cp, adj_vertices = elliptic_envelop(P_cp)
+            if elliptic_envelop == false
+                
+                P_cp = identify_non_vertices(P_cp);
+
+            else
+
+                P_cp, adj_vertices = elliptic_envelop(P_cp)
+                
+            end
     
         end
     
