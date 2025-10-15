@@ -34,9 +34,7 @@ module vertexBasedRechabilityAnalysis
             P_hat = compute_intersections(P_hat, input_dimensionality, adj_vertices=adj_vertices)
     
             P_cp = filtering_zeros(P_hat);
-            # P_cp = identify_non_vertices(P_cp);
-            P_cp = elliptic_envelop(P_cp)
-            adj_vertices = compute_hyperrectangle_edges(P_cp)
+            P_cp, adj_vertices = elliptic_envelop(P_cp)
     
         end
     
