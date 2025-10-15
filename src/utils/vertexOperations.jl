@@ -339,7 +339,7 @@ end
 function elliptic_envelop(P_hat_convex_hull)
 
     dim_P = calculate_polytope_dim_from_vertices(P_hat_convex_hull');
-    M = fit(PCA, P_hat_convex_hull; maxoutdim=dim_P)
+    M = fit(PCA, P_hat_convex_hull; maxoutdim=max(dim_P, 1))
 
     P_reduced_dim = predict(M, P_hat_convex_hull)
 
