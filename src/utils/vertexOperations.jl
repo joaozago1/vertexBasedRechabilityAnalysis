@@ -341,42 +341,6 @@ function calculate_polytope_dim_from_vertices(V)
     return rank(differences, rtol=1e-3)
 end
 
-function elliptic_envelop(P_hat_convex_hull)
-
-    dim_P = calculate_polytope_dim_from_vertices(P_hat_convex_hull');
-    M = fit(PCA, P_hat_convex_hull; maxoutdim=max(dim_P, 1))
-
-    P_reduced_dim = predict(M, P_hat_convex_hull)
-
-    ϵ = minimum_volume_ellipsoid(P_reduced_dim, 1e-10, 0, 100000, centered=false)
-
-    ellipsoid_center = ϵ.x;
-    axis_size = sqrt.(eigvals(inv(ϵ.H ./ 2)))
-    eigen_vectors = eigvecs(inv(ϵ.H))
-
-    vertices_hyperrectagle = Matrix{Float64}(undef, length(ellipsoid_center), 0)
-
-    for i in 0:2^length(ellipsoid_center)-1
-
-        bin_aux = digits(i, base=2, pad=length(ellipsoid_center))
-        point_aux = ellipsoid_center
-
-        for j in eachindex(ellipsoid_center)
-
-            point_aux += axis_size[j]*eigen_vectors[j,:]*(2*bin_aux[j] - 1)
-
-        end
-
-        vertices_hyperrectagle = hcat(vertices_hyperrectagle, point_aux)
-
-    end
-
-    vertices_hyperrectagle = reconstruct(M, vertices_hyperrectagle)
-
-    return vertices_hyperrectagle
-
-end;
-
 function adj_matrix_to_adj_list(adj_matrix)
 
     adj_list = Vector{Vector{Int32}}(undef, 0)
@@ -401,18 +365,50 @@ function adj_matrix_to_adj_list(adj_matrix)
 
 end;
 
-function compute_hyperrectangle_edges(P)
+function elliptic_envelop(P_hat_convex_hull)
 
-    adjacency_aux = zeros(size(binary_aux,2), size(binary_aux,2));
+    dim_P = calculate_polytope_dim_from_vertices(P_hat_convex_hull');
+    M = fit(PCA, P_hat_convex_hull; maxoutdim=max(dim_P, 1))
 
-    for i in 1:size(P,2)-1
+    P_reduced_dim = predict(M, P_hat_convex_hull)
 
-        for j in i+1:size(P,2)
+    ϵ = minimum_volume_ellipsoid(P_reduced_dim, 1e-10, 0, 100000, centered=false)
 
-            abs_diff = abs.(P[:,i] - P[:,j])
-            null_indices = findall(x -> x == 0, abs_diff)
+    ellipsoid_center = ϵ.x;
+    axis_size = sqrt.(eigvals(inv(ϵ.H ./ 2)))
+    eigen_vectors = eigvecs(inv(ϵ.H))
 
-            if length(null_indices) == 1
+    vertices_hyperrectagle = Matrix{Float64}(undef, length(ellipsoid_center), 0)
+    bin_aux_matrix = Matrix{Float64}(undef, length(ellipsoid_center), 0)
+
+    for i in 0:2^length(ellipsoid_center)-1
+
+        bin_aux = digits(i, base=2, pad=length(ellipsoid_center))
+        bin_aux_matrix = hcat(bin_aux_matrix, bin_aux)
+
+        point_aux = ellipsoid_center
+
+        for j in eachindex(ellipsoid_center)
+
+            point_aux += axis_size[j]*eigen_vectors[j,:]*(2*bin_aux[j] - 1)
+
+        end
+
+        vertices_hyperrectagle = hcat(vertices_hyperrectagle, point_aux)
+
+    end
+
+    vertices_hyperrectagle = reconstruct(M, vertices_hyperrectagle)
+
+    adjacency_aux = zeros(size(bin_aux_matrix,2), size(bin_aux_matrix,2));
+
+    for i in 1:size(bin_aux_matrix,2)-1
+
+        for j in i+1:size(bin_aux_matrix,2)
+
+            sum_aux = sum(abs.(bin_aux_matrix[:,i] - bin_aux_matrix[:,j]))
+
+            if sum_aux == 1.0
 
                 adjacency_aux[i,j] = 1.0
 
@@ -424,6 +420,6 @@ function compute_hyperrectangle_edges(P)
 
     adjacency_list = adj_matrix_to_adj_list(adjacency_aux);
 
-    return adjacency_list
+    return vertices_hyperrectagle, adjacency_list
 
-end
+end;
