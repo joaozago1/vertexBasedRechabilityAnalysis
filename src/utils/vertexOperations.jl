@@ -319,3 +319,32 @@ function identify_non_vertices(P_cp)
     return P_cp
 
 end;
+
+function elliptic_envelop(P_hat_convex_hull)
+
+    ϵ = minimum_volume_ellipsoid(P_hat_convex_hull, 1e-10, 0, 100000, centered=false)
+
+    ellipsoid_center = ϵ.x;
+    axis_size = sqrt.(eigvals(inv(ϵ.H ./ 2)))
+    eigen_vectors = eigvecs(inv(ϵ.H))
+
+    vertices_hyperrectagle = Matrix{Float64}(undef, length(ellipsoid_center), 0)
+
+    for i in 0:2^length(ellipsoid_center)-1
+
+        bin_aux = digits(i, base=2, pad=length(ellipsoid_center))
+        point_aux = ellipsoid_center
+
+        for j in eachindex(ellipsoid_center)
+
+            point_aux += axis_size[j]*eigen_vectors[j,:]*(2*bin_aux[j] - 1)
+
+        end
+
+        vertices_hyperrectagle = hcat(vertices_hyperrectagle, point_aux)
+
+    end
+
+    return vertices_hyperrectagle
+
+end;

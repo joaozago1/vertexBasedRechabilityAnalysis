@@ -13,7 +13,7 @@ module vertexBasedRechabilityAnalysis
 
     include("utils/vertexOperations.jl")
 
-    export identify_adjascent_vertices, identifying_orthant_intersection_points, comput_internal_intersections, compute_intersections, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices
+    export identify_adjascent_vertices, identifying_orthant_intersection_points, comput_internal_intersections, compute_intersections, filtering_zeros, convert_to_matrix, convert_to_vector, identify_non_vertices, elliptic_envelop
 
     include("utils/origin.jl")
 
@@ -31,7 +31,8 @@ module vertexBasedRechabilityAnalysis
             P_hat = compute_intersections(P_hat, input_dimensionality)
     
             P_cp = filtering_zeros(P_hat);
-            P_cp = identify_non_vertices(P_cp);
+            # P_cp = identify_non_vertices(P_cp);
+            P_cp = elliptic_envelop(P_cp)
     
         end
     
