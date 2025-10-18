@@ -39,7 +39,15 @@ module vertexBasedRechabilityAnalysis
                 
                 P_cp = identify_non_vertices(P_cp);
                 dim_P = calculate_polytope_dim_from_vertices(P_cp');
-                P_cp = reduce_num_vertices(P_cp, dim_P+1, mip_gap=0.1, timeout=60)
+                M = fit(PCA, P_cp; maxoutdim=max(dim_P, 1))
+                P_reduced_dim = predict(M, P_cp)
+
+                println("DIM P: ")
+                println(dim_P)
+                println("DIM REDUCED P: ")
+                println(P_reduced_dim)
+
+                P_cp = reduce_num_vertices(P_cp, size(P_reduced_dim)[1]+1, mip_gap=0.1, timeout=60)
 
             else
 
