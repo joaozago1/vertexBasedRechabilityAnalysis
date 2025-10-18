@@ -429,6 +429,7 @@ function reduce_num_vertices(P_cp, m; mip_gap=0.1, timeout=10)
     model = Model(Gurobi.Optimizer);
 
     set_attribute(model, "MIPGap", mip_gap)
+    set_attribute(model, "MIPFocus", 1)
     set_time_limit_sec(model, timeout)
 
     @variable(model, v_hat[1:size(P_cp)[1],1:m], binary=false)
