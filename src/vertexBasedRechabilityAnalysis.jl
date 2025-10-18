@@ -45,9 +45,9 @@ module vertexBasedRechabilityAnalysis
                 println("DIM P: ")
                 println(dim_P)
                 println("DIM REDUCED P: ")
-                println(P_reduced_dim)
+                println(P_reduced_dim[1])
 
-                P_cp = reduce_num_vertices(P_cp, size(P_reduced_dim)[1]+1, mip_gap=0.1, timeout=60)
+                P_cp = reduce_num_vertices(P_cp, size(P_reduced_dim)[1]+1, mip_gap=0.1, timeout=360)
 
             else
 
