@@ -423,3 +423,28 @@ function elliptic_envelop(P_hat_convex_hull)
     return vertices_hyperrectagle, adjacency_list
 
 end;
+
+function reduce_num_vertices(P_cp, m; mip_gap=0.1, timeout=10)
+
+    model = Model(Gurobi.Optimizer);
+
+    set_attribute(model, "MIPGap", mip_gap)
+    set_time_limit_sec(model, timeout)
+
+    @variable(model, v_hat[1:size(P_cp)[1],1:m], binary=false)
+    @variable(model, λ[1:size(P_cp)[2], 1:m] >= 0, binary=false)
+
+    for i in 1:size(P_cp)[2]
+
+        @constraint(model, sum(λ[i,:]) == 1)
+        @constraint(model, v_hat*λ[i,:] == P_cp[:,i])
+
+    end
+
+    @objective(model, Min, sum([sum((P_cp .- v_hat[:,i]).^ 2) for i in 1:m]));
+
+    optimize!(model)
+
+    return JuMP.value.(v_hat)
+
+end

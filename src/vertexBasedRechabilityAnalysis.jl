@@ -38,6 +38,8 @@ module vertexBasedRechabilityAnalysis
             if use_elliptic_envelop == false
                 
                 P_cp = identify_non_vertices(P_cp);
+                dim_P = calculate_polytope_dim_from_vertices(P_cp');
+                P_cp = reduce_num_vertices(P_cp, dim_P+1, mip_gap=0.1, timeout=10)
 
             else
 
