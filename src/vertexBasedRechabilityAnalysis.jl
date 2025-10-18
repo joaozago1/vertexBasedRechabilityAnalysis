@@ -25,10 +25,11 @@ module vertexBasedRechabilityAnalysis
 
     function network_mapping(P_cp, neural_network; use_elliptic_envelop=false)
     
-        input_dimensionality = size(P_cp)[1];
         adj_vertices = nothing
     
         for i in 1:length(neural_network)-1
+
+            input_dimensionality = dim(VPolytope(P_cp))
     
             P_hat = affine_mapping(P_cp, params(neural_network[i])[1], params(neural_network[i])[2]);
             P_hat = compute_intersections(P_hat, input_dimensionality, adj_vertices=adj_vertices)
@@ -38,16 +39,6 @@ module vertexBasedRechabilityAnalysis
             if use_elliptic_envelop == false
                 
                 P_cp = identify_non_vertices(P_cp);
-                # dim_P = calculate_polytope_dim_from_vertices(P_cp');
-                # M = fit(PCA, P_cp; maxoutdim=max(dim_P, 1))
-                # P_reduced_dim = predict(M, P_cp)
-
-                # println("DIM P: ")
-                # println(dim_P)
-                # println("DIM REDUCED P: ")
-                # println(size(P_reduced_dim)[1])
-
-                # P_cp = reduce_num_vertices(P_cp, size(P_reduced_dim)[1]+1, mip_gap=0.1, timeout=60)
 
             else
 
